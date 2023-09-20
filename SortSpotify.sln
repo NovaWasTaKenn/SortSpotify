@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.5.33424.131
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SortSpotify", "SortSpotify\SortSpotify.csproj", "{2AE33F9B-156B-40A3-9498-D37EEE3E59D1}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Console", "Console\Console.csproj", "{40000644-6EDC-49AF-87DC-C97E8966EA7E}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{2AE33F9B-156B-40A3-9498-D37EEE3E59D1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2AE33F9B-156B-40A3-9498-D37EEE3E59D1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2AE33F9B-156B-40A3-9498-D37EEE3E59D1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2AE33F9B-156B-40A3-9498-D37EEE3E59D1}.Release|Any CPU.Build.0 = Release|Any CPU
+		{40000644-6EDC-49AF-87DC-C97E8966EA7E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{40000644-6EDC-49AF-87DC-C97E8966EA7E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{40000644-6EDC-49AF-87DC-C97E8966EA7E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{40000644-6EDC-49AF-87DC-C97E8966EA7E}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {C8F08599-8F0B-4F1B-892E-1AA522E31C6D}
+	EndGlobalSection
+EndGlobal
