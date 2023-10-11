@@ -4,16 +4,19 @@
     {
 
         public string id { get; set; }
+        public string uri { get; set; }
         public string name { get; set; }
         public List<string> artistIds { get; set; }
         public List<string> artistNames { get; set; }
         public List<string> genres { get; set; }
         public List<string> playlistNames { get; set; }
 
-        public MusicInfo(string id, string name, List<string> artistIds, List<string> artistNames)
+
+        public MusicInfo(string id, string uri, string name, List<string> artistIds, List<string> artistNames)
         {
          
             this.id = id;
+            this.uri = uri;
             this.name = name;
             this.artistIds = artistIds;
             this.artistNames = artistNames;

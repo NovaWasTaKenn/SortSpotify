@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Http.Extensions;
+using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc.Formatters;
 using SortSpotify.Controllers;
 using SortSpotify.Models;
@@ -6,10 +7,12 @@ using System;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Net.Http;
+using System.Net.Http.Json;
 using System.Runtime.InteropServices;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using System.Text.RegularExpressions;
+using static System.Net.WebRequestMethods;
 
 namespace SortSpotify.Helpers
 {
@@ -34,26 +37,27 @@ namespace SortSpotify.Helpers
 
             List<SavedTrack> savedTracks = new List<SavedTrack>();
 
-            Dictionary<string, List<string>> playlistsKeywords= new Dictionary<string, List<string>>();
+            Dictionary<string, string> playlistsKeywords= new Dictionary<string, string>();
 
-            playlistsKeywords["pop"] = new List<string> { "pop" };
-            playlistsKeywords["instrumental rock"] = new List<string> { "instru","rock" };
-            playlistsKeywords["classic rock"] = new List<string> { "classic", "rock" };
-            playlistsKeywords["modern rock | hard rock"] = new List<string> { "modern", "rock", "hard" };
-            playlistsKeywords["alt rock"] = new List<string> { "alt", "rock" };
-            playlistsKeywords["indie"] = new List<string> { "indie" };
-            playlistsKeywords["blues"] = new List<string> { "blues" };
-            playlistsKeywords["prog rock"] = new List<string> { "prog", "rock" };
-            playlistsKeywords["pop rock"] = new List<string> { "pop", "rock" };
-            playlistsKeywords["power metal"] = new List<string> { "power", "metal" };
-            playlistsKeywords["alt metal"] = new List<string> { "alt", "metal" };
-            playlistsKeywords["djent | prog metal"] = new List<string> { "djent", "prog", "metal" };
-            playlistsKeywords["symphonic metal"] = new List<string> { "symphon", "metal" };
-            playlistsKeywords["synthwave | darkwave | cyberpunk | darksynth | spacewave | chillsynth"] = new List<string> { "synthwave", "chillsynth", "darkwave", "cyberpunk", "darksynth", "spacewave" };
-            playlistsKeywords["tropical house"] = new List<string> { "tropi", "house" };
-            playlistsKeywords["rap"] = new List<string> { "rap", "hip", "hop" };
-            playlistsKeywords["reggae"] = new List<string> { "reggae" };
-
+            playlistsKeywords["pop"] = "(pop)";
+            playlistsKeywords["instrumental rock"] = "(?=.*instru.*)(?=.*rock)";
+            playlistsKeywords["classic rock"] = "(?=.*classi.*)(?=.*rock)";
+            playlistsKeywords["modern rock | hard rock"] = "(?=.*(modern.*)|(hard))(?=.*rock)";
+            playlistsKeywords["alt rock"] = "(?=.*alt.*)(?=.*rock)";
+            playlistsKeywords["indie"] = "(indie)";
+            playlistsKeywords["blues"] = "(blues)";
+            playlistsKeywords["prog rock"] = "(?=.*prog.*)(?=.*rock)";
+            playlistsKeywords["pop rock"] = "(?=.*pop)(?=.*rock)";
+            playlistsKeywords["power metal"] = "(?=.*power)(?=.*metal)";
+            playlistsKeywords["alt metal"] = "(?=.*alt.*)(?=.*metal)";
+            playlistsKeywords["djent | prog metal"] = "(?=.*(djent)|(prog))(?=.*metal)";
+            playlistsKeywords["symphonic metal"] = "(symphon.*)&(metal)";
+            playlistsKeywords["synthwave | darkwave | cyberpunk | darksynth | spacewave | chillsynth"] = @"(synthwave)|(chillsynth)|(darkwave)|(cyberpunk)|(darksynth)|(spacewave)|(filter\s*house)";
+            playlistsKeywords["tropical house"] = "(?=.*tropi.*)(?=.*house)";
+            playlistsKeywords["rap"] = "(rap)|((?=.*hip)(?=.*hop))";
+            playlistsKeywords["reggae"] = "(reggae)";
+            playlistsKeywords["downtempo"] = @"(downtempo)|(trip\shop)|(livetronica)|(electronica)|(american\spost\srock)";
+            playlistsKeywords["grunge"] = @"(grunge)|(permanent\swave)";
 
             //Dictionary<string, List<string>> genresToPlaylists= new Dictionary<string, List<string>>();
             //
@@ -106,18 +110,19 @@ namespace SortSpotify.Helpers
                 //File.WriteAllText(@"C:\Users\Quentin Le Nestour\Documents\savedTrackResponse.json", responseJsonString);
 
 
-                LibraryResponse response = JsonSerializer.Deserialize<LibraryResponse>(responseJsonString);
+                LibraryResponse responseLibrary = JsonSerializer.Deserialize<LibraryResponse>(responseJsonString);
 
 
-                savedTracks.AddRange(response.items);
+                savedTracks.AddRange(responseLibrary.items);
 
-                getLibraryUrl = response.next;
+                getLibraryUrl = responseLibrary.next;
 
             } while (getLibraryUrl is not null);
 
 
             List<MusicInfo> musicInfos = savedTracks.Select<SavedTrack, MusicInfo>(
                 savedTrack => new MusicInfo(savedTrack.track.id,
+                savedTrack.track.uri,
                 savedTrack.track.name,
                 savedTrack.track.artists.Select(artist => artist.id).ToList(),
                 savedTrack.track.artists.Select(artist => artist.name).ToList()
@@ -203,7 +208,7 @@ namespace SortSpotify.Helpers
             //
             //}
 
-
+            
 
             foreach (MusicInfo musicInfo in musicInfos)
             {
@@ -211,39 +216,20 @@ namespace SortSpotify.Helpers
                 foreach (string genre in musicInfo.genres)
                 {
 
-                    foreach (KeyValuePair<string, List<string>> genresToPlaylist in playlistsKeywords)
+                    foreach (KeyValuePair<string, string> keyword in playlistsKeywords)
                     {
 
-                        bool keywordAnd= true;
-                        bool keywordOr= false;
-
-                        foreach (string keyword in genresToPlaylist.Value)
+                        if (Regex.Match(genre, keyword.Value).Success)
                         {
-
-                            if (!genre.Contains(keyword))
-                            {
-                                keywordAnd = false;
-                                break;
-                            }
-                            if (genre.Contains(keyword))
-                            {
-                                keywordOr = true;
-                                break;
-                            }
-
-
-                        }
-
-                        if ()
-                        {
-                            musicInfo.playlistNames.Add(genresToPlaylist.Key);
+                            musicInfo.playlistNames.Add(keyword.Key);
                         }
 
                     }
 
                 }
 
-                if(musicInfo.playlistNames.Count == 0) 
+
+                if(musicInfo.playlistNames.Count() == 0)
                 {
                     musicInfo.playlistNames.Add("default");
                 }
@@ -259,27 +245,111 @@ namespace SortSpotify.Helpers
             foreach (MusicInfo musicInfo in musicInfos)
             {
             
-                foreach (string value in musicInfo.playlistNames)
+                foreach (string playlistName in musicInfo.playlistNames)
                 {
-                    if (!playlists.ContainsKey(value))
+                    if (!playlists.ContainsKey(playlistName))
                     {
-                        playlists[value] = new List<MusicInfo>();
+                        playlists[playlistName] = new List<MusicInfo>();
                     }
-                    playlists[value].Add(musicInfo);
+                    playlists[playlistName].Add(musicInfo);
                 }
             
             }
 
+            //Genres non pris en cpt : ((livetronica, downtempo, trip hop), american post-rock), none, vocaloid, (grunge, permanent wave, rock), 
+
+
+            string getPlaylistsUrl = "https://api.spotify.com/v1/me/playlists?limit=50";
+
+            List<Playlist> userPlaylists = new List<Playlist>();
+
+            do
+            {
+
+                string responseJsonString = await ApiHelper.DoWithRetryAsync(getPlaylistsUrl, 5, HttpMethod.Get, null, null, true).ConfigureAwait(false);
+
+                //File.WriteAllText(@"C:\Users\Quentin Le Nestour\Documents\savedTrackResponse.json", responseJsonString);
+
+
+                PlaylistResponse responsePLaylist = JsonSerializer.Deserialize<PlaylistResponse>(responseJsonString);
+
+
+                userPlaylists.AddRange(responsePLaylist.items);
+
+                getPlaylistsUrl = responsePLaylist.next;
+
+            } while (getPlaylistsUrl is not null);
+
+            List<string> userPlaylistsNames = userPlaylists.Select(userPlaylist => userPlaylist.name).Distinct().ToList();
+
+
+            string getCurrentUser = "https://api.spotify.com/v1/me";
+            string userResponseJson = await ApiHelper.DoWithRetryAsync(getCurrentUser, 5, HttpMethod.Get, null, null, true).ConfigureAwait(false);
+
+            UserResponse response = JsonSerializer.Deserialize<UserResponse>(userResponseJson);
+
+            string userId = response.id;
+
+            string createPlaylistUrl = $"https://api.spotify.com/v1/users/{userId}/playlists";
+
+            foreach (var playlist in playlists)
+            {
+
+                string playlistId = "";
+
+                if (!userPlaylistsNames.Contains(playlist.Key))
+                {
+                    string responseJsonString = await ApiHelper.DoWithRetryAsync(createPlaylistUrl, 5, HttpMethod.Post, new StringContent(
+                        $"{{\"name\":\"{playlist.Key}\",\"description\":\"Playlist created automatically\",\"public\":false,\"collaborative\":false}}",
+                        System.Text.Encoding.UTF8, "application/json"), null, true).ConfigureAwait(false);
+
+                    Playlist playlistResponse = JsonSerializer.Deserialize<Playlist>(responseJsonString);
+
+                    playlistId = playlistResponse.id;
+
+                }
+                else
+                {
+                    playlistId = userPlaylists.Where(userPlaylist => userPlaylist.name == playlist.Key).ToList()[0].id;
+
+                }
+
+
+
+
+
+                string addTracksUrl = $"https://api.spotify.com/v1/playlists/{playlist.Key}/tracks";
+
+                int countTracks = 0;
+                int lenTracks = playlist.Value.Count;
+
+                do
+                {
+
+                    string uris = String.Join(",", playlist.Value.Select(musicInfo => musicInfo.uri).ToList().GetRange(countTracks, lenTracks - countTracks < 100 ? lenTracks - countTracks : 100));
+
+                    countTracks += lenTracks - countTracks < 100 ? lenTracks - countTracks : 100;
+
+                    
+                    string responseJsonString = await ApiHelper.DoWithRetryAsync(addTracksUrl, 5, HttpMethod.Post, new StringContent(
+                        $"{{\"playlist_id\":\"{playlistId}\",\"uris\":\"{uris}\"}}",
+                        System.Text.Encoding.UTF8, "application/json"), null, true).ConfigureAwait(false);
+
+                } while (countTracks < len);
+
+            }
+
+            
 
 
             string playlistsStr = JsonSerializer.Serialize(playlists);
 
-            File.WriteAllText(@"C:\Users\Quentin Le Nestour\Documents\playlists.json", playlistsStr);
+            System.IO.File.WriteAllText(@"C:\Users\Quentin Le Nestour\Documents\playlists.json", playlistsStr);
 
 
             string musicInfosStr = JsonSerializer.Serialize(musicInfos);
 
-            File.WriteAllText(@"C:\Users\Quentin Le Nestour\Documents\musicInfos.json", musicInfosStr);
+            System.IO.File.WriteAllText(@"C:\Users\Quentin Le Nestour\Documents\musicInfos.json", musicInfosStr);
 
 
             Console.WriteLine(savedTracks);

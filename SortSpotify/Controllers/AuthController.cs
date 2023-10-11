@@ -27,7 +27,7 @@ namespace SortSpotify.Controllers
             _codeVerifier = Helpers.SpotifyAuthHelper.GenerateRandomString(128);
             _state = Helpers.SpotifyAuthHelper.GenerateRandomString(16);
             var codeChallenge = Helpers.SpotifyAuthHelper.GenerateCodeChallenge(_codeVerifier);
-            var scopes = "user-read-private user-read-email user-library-read"; // Add required scopes
+            var scopes = "user-read-private user-read-email user-library-read playlist-modify-public playlist-modify-private"; // Add required scopes
 
             var authorizationUrl =
                 $"https://accounts.spotify.com/authorize?response_type=code&client_id={_clientId}&redirect_uri={_redirectUri}&" +

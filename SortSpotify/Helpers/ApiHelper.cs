@@ -109,20 +109,20 @@ namespace SortSpotify.Helpers
                 catch(CustomHttpRequestException ex)
                 {
                     Console.WriteLine(ex.ToString());
-                    if (ex.StatusCode == System.Net.HttpStatusCode.NoContent || ex.StatusCode == System.Net.HttpStatusCode.NotFound || ex.StatusCode == System.Net.HttpStatusCode.BadRequest)
+                    if (ex._statusCode == System.Net.HttpStatusCode.NoContent || ex._statusCode == System.Net.HttpStatusCode.NotFound || ex._statusCode == System.Net.HttpStatusCode.BadRequest || ex._statusCode == System.Net.HttpStatusCode.Forbidden)
                     {
                         Console.WriteLine(ex.ToString());
                         throw ex;
                     }
 
-                    if(ex.StatusCode == System.Net.HttpStatusCode.TooManyRequests)
+                    if(ex._statusCode == System.Net.HttpStatusCode.TooManyRequests)
                     {
                         int sleepTime = (ex.GetRetryAfterTimeSpan() ?? new TimeSpan(0,0,60)).Seconds * 1000;
                         Thread.Sleep(sleepTime);
                         retryCount--;
                     }
 
-                    if (ex.StatusCode == System.Net.HttpStatusCode.Unauthorized)
+                    if (ex._statusCode == System.Net.HttpStatusCode.Unauthorized)
                     {
                         Console.WriteLine(ex.ToString());
                         SpotifyAuthHelper.RefreshToken();
@@ -134,7 +134,7 @@ namespace SortSpotify.Helpers
                 {
 
                     Console.WriteLine(ex.ToString());
-                    if (ex.StatusCode == System.Net.HttpStatusCode.NoContent || ex.StatusCode == System.Net.HttpStatusCode.NotFound || ex.StatusCode == System.Net.HttpStatusCode.BadRequest)
+                    if (ex.StatusCode == System.Net.HttpStatusCode.NoContent || ex.StatusCode == System.Net.HttpStatusCode.NotFound || ex.StatusCode == System.Net.HttpStatusCode.BadRequest || ex.StatusCode == System.Net.HttpStatusCode.Forbidden)
                     {
                         Console.WriteLine(ex.ToString());
                         throw ex;
